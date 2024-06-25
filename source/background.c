@@ -607,8 +607,9 @@ int background_functions(
 
     // PH
     if(pba->scf_evolve_as_fluid_PH == _TRUE_){
-        H = sqrt((rho_tot)-pba->K/a/a);
-        Hprime = - (3./2.) * ((rho_tot) + (p_tot)) * a + pba->K/a;
+        // Also include contributions from actual field - is this self consistent - not an issue if field is subdominant?
+        H = sqrt((rho_tot + pvecback[pba->index_bg_rho_scf])-pba->K/a/a);
+        Hprime = - (3./2.) * ((rho_tot + pvecback[pba->index_bg_rho_scf]) + (p_tot + pvecback[pba->index_bg_p_scf])) * a + pba->K/a;
         factor = 6*pow(H,2)/(9*pow(H,4) - 4*(4*pow(H,2)*pow(pba->m_scf*pba->H0,2) + pow(Hprime,2)/pow(a,2)));
         phi_c = phi;
         phi_prime_c = factor*a*pba->m_scf*pba->H0*(4*H*pba->m_scf*pba->H0*phi +
@@ -647,8 +648,9 @@ int background_functions(
     pvecback[pba->index_bg_dV_scf] = dV_scf(pba,phi); // dV_scf(pba,phi); //potential' as function of phi
     pvecback[pba->index_bg_ddV_scf] = ddV_scf(pba,phi); // ddV_scf(pba,phi); //potential'' as function of phi
 
-    H = sqrt((rho_tot)-pba->K/a/a);
-    Hprime = - (3./2.) * ((rho_tot) + (p_tot)) * a + pba->K/a;
+    // Again have included contributions from actual field here - is this self consistent?
+    H = sqrt((rho_tot + (phi_prime*phi_prime/(2*a*a) + V_scf(pba,phi))/3.)-pba->K/a/a);
+    Hprime = - (3./2.) * ((rho_tot + (phi_prime*phi_prime/(2*a*a) + V_scf(pba,phi))/3.) + (p_tot + (phi_prime*phi_prime/(2*a*a) - V_scf(pba,phi))/3.)) * a + pba->K/a;
 
     if(pba->kg_fld_switch == _FALSE_){
       pba->kg_fld_switch = _TRUE_;
