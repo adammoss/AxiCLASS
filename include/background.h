@@ -164,6 +164,7 @@ struct background
 
   double Omega0_scf;        /**< \f$ \Omega_{0 scf} \f$: scalar field */
   short scf_evolve_as_fluid; /** set to false to only evolve KG equations, otherwise - switch to fluid when necessary. To be used in perturbation module*/
+  short scf_evolve_as_fluid_PH;
   double threshold_scf_fluid_m_over_H; /** if scf_evolve_as_fluid set to true, the scf will be modeled as a fluid once m/H drops below threshold_scf_fluid_m_over_H */
   double security_small_Omega_scf; /** enforce fluid when Om_scf is below  security_small_Omega_scf even if scf_evolve_as_fluid = False to avoid code crashing; harmless due to the smallness of Om_scf */
   short attractor_ic_scf;   /**< whether the scalar field has attractor initial conditions */
@@ -302,6 +303,7 @@ struct background
   int index_bg_dV_scf;        /**< scalar field potential derivative V' */
   int index_bg_ddV_scf;       /**< scalar field potential second derivative V'' */
   int index_bg_rho_scf;       /**< scalar field energy density */
+  int index_bg_rho_scf_aux;       /**< scalar field energy density */
   int index_bg_Omega_scf;       /**< scalar field fractional energy density */
   int index_bg_p_scf;         /**< scalar field pressure */
   int index_bg_p_prime_scf;         /**< scalar field pressure */
@@ -382,6 +384,7 @@ struct background
   int index_bi_rho_dr;  /**< {B} dr density */
   int index_bi_rho_fld; /**< {B} fluid density */
   int index_bi_rho_scf; /**< {B} scf density */
+  int index_bi_rho_scf_aux; /**< {B} scf density */
   int index_bi_phi_scf;       /**< {B} scalar field value */
   int index_bi_phi_prime_scf; /**< {B} scalar field derivative wrt conformal time */
 

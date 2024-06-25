@@ -16,7 +16,8 @@ class_precision_parameter(background_Nloga,int,3000)
 /**
  * Evolver to be used for thermodynamics (rk, ndf15)
  */
-class_type_parameter(background_evolver,int,enum evolver_type,ndf15)
+//class_type_parameter(background_evolver,int,enum evolver_type,ndf15)
+class_type_parameter(background_evolver,int,enum evolver_type,rk)
 /**
  * Tolerance of the background integration, giving the allowed relative integration error.
  * (used by both evolvers)

@@ -21,3 +21,4 @@ doc/manual/html
 doc/manual/latex
 
 .idea
+*.egg

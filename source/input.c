@@ -692,7 +692,16 @@ class_call(parser_read_string(pfc,"do_shooting",&string1,&flag1,errmsg),
           fzw.scf_evolve_as_fluid = _FALSE_;
         }
 
+       class_call(parser_read_string(pfc,"scf_evolve_as_fluid_PH",&string1,&flag1,errmsg),
+                 errmsg,
+                 errmsg);
 
+        if ((flag1 == _TRUE_) && ((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL))) {
+        fzw.scf_evolve_as_fluid_PH = _TRUE_;
+        }
+        else {
+          fzw.scf_evolve_as_fluid_PH = _FALSE_;
+        }
 
 
         if(fzw.scf_potential == axionquad){
@@ -4464,6 +4473,26 @@ class_call(parser_read_double(pfc,"Omega_scf_shoot_fa",&param4,&flag4,errmsg),
       pba->scf_evolve_as_fluid = _FALSE_;
     }
 
+     class_call(parser_read_string(pfc,
+                                  "scf_evolve_as_fluid",
+                                  &string1,
+                                  &flag1,
+                                  errmsg),
+                errmsg,
+                errmsg);
+
+    if (flag1 == _TRUE_){
+      if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+        pba->scf_evolve_as_fluid_PH = _TRUE_;
+      }
+      else {
+        pba->scf_evolve_as_fluid_PH = _FALSE_;
+      }
+    }
+    else {
+      pba->scf_evolve_as_fluid_PH = _FALSE_;
+    }
+
 
     class_call(parser_read_string(pfc,
                                   "use_big_theta_scf",
@@ -7625,6 +7654,7 @@ int input_default_params(struct background *pba,
   ppt->use_delta_fld_over_1plusw = _FALSE_;
   ppt->use_delta_scf_over_1plusw = _FALSE_;
   pba->scf_evolve_as_fluid = _FALSE_;
+  pba->scf_evolve_as_fluid_PH = _FALSE_;
   pba->scf_evolve_like_axionCAMB = _FALSE_;
   ppt->include_scf_in_delta_m = _FALSE_;
   ppt->include_scf_in_delta_cb = _FALSE_;
