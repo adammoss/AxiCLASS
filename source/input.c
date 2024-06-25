@@ -4474,7 +4474,7 @@ class_call(parser_read_double(pfc,"Omega_scf_shoot_fa",&param4,&flag4,errmsg),
     }
 
      class_call(parser_read_string(pfc,
-                                  "scf_evolve_as_fluid",
+                                  "scf_evolve_as_fluid_PH",
                                   &string1,
                                   &flag1,
                                   errmsg),
