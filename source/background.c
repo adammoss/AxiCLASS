@@ -679,7 +679,7 @@ int background_functions(
 
     // PH
     if(pba->scf_evolve_as_fluid_PH == _TRUE_){
-        pvecback[pba->index_bg_p_scf] = 1.5*pow(H/pba->m_scf,2)*pvecback_B[pba->index_bi_rho_scf];
+        pvecback[pba->index_bg_p_scf] = 1.5*pow(H/(pba->m_scf*pba->H0),2)*pvecback_B[pba->index_bi_rho_scf];
     }
     else {
         pvecback[pba->index_bg_p_scf] = pba->w_scf*pvecback_B[pba->index_bi_rho_scf];
@@ -690,7 +690,12 @@ int background_functions(
       pvecback[pba->index_bg_w_scf] = (1+pba->w_scf)/(1+pow(pba->a_c/a,3*(1+pba->w_scf)))-1;
     }
     else{
-      pvecback[pba->index_bg_w_scf] = pba->w_scf;
+      if(pba->scf_evolve_as_fluid_PH == _TRUE_){
+        pvecback[pba->index_bg_w_scf] = 1.5*pow(H/(pba->m_scf*pba->H0),2);
+      }
+      else {
+        pvecback[pba->index_bg_w_scf] = pba->w_scf;
+      }
     }
 
 
