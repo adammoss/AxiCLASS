@@ -698,7 +698,7 @@ int background_functions(
 
   }
   //printf("Scalar field? %f \n", pba->has_scf); //print_trigger
-  
+
   /** - compute expansion rate H from Friedmann equation: this is the
       only place where the Friedmann equation is assumed. Remember
       that densities are all expressed in units of \f$ [3c^2/8\pi G] \f$, ie
