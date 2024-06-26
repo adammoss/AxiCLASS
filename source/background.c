@@ -2337,8 +2337,8 @@ int background_solve(
   /* evolvers */
   extern int evolver_rk();
   extern int evolver_ndf15();
-  //int (*generic_evolver)() = evolver_ndf15;
-  int (*generic_evolver)() = evolver_rk;
+  int (*generic_evolver)() = evolver_ndf15;
+  //int (*generic_evolver)() = evolver_rk;
 
   /* initial and final loga values */
   double loga_ini, loga_final;
