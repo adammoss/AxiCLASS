@@ -496,7 +496,98 @@ int background_functions(
     rho_r += pvecback[pba->index_bg_rho_dr];
   }
 
-    //printf("Scalar field? %f \n", pba->has_scf);//print_trigger
+  /* ncdm */
+  if (pba->has_ncdm == _TRUE_) {
+
+    /* Loop over species: */
+    for (n_ncdm=0; n_ncdm<pba->N_ncdm; n_ncdm++) {
+
+      /* function returning background ncdm[n_ncdm] quantities (only
+         those for which non-NULL pointers are passed) */
+      class_call(background_ncdm_momenta(
+                                         pba->q_ncdm_bg[n_ncdm],
+                                         pba->w_ncdm_bg[n_ncdm],
+                                         pba->q_size_ncdm_bg[n_ncdm],
+                                         pba->M_ncdm[n_ncdm],
+                                         pba->factor_ncdm[n_ncdm],
+                                         1./a-1.,
+                                         NULL,
+                                         &rho_ncdm,
+                                         &p_ncdm,
+                                         NULL,
+                                         &pseudo_p_ncdm),
+                 pba->error_message,
+                 pba->error_message);
+
+      pvecback[pba->index_bg_rho_ncdm1+n_ncdm] = rho_ncdm;
+      rho_tot += rho_ncdm;
+      pvecback[pba->index_bg_p_ncdm1+n_ncdm] = p_ncdm;
+      p_tot += p_ncdm;
+      pvecback[pba->index_bg_pseudo_p_ncdm1+n_ncdm] = pseudo_p_ncdm;
+      /** See e.g. Eq. A6 in 1811.00904. */
+      dp_dloga += (pseudo_p_ncdm - 5*p_ncdm);
+
+      /* (3 p_ncdm1) is the "relativistic" contribution to rho_ncdm1 */
+      rho_r += 3.* p_ncdm;
+
+      /* (rho_ncdm1 - 3 p_ncdm1) is the "non-relativistic" contribution
+         to rho_ncdm1 */
+      rho_m += rho_ncdm - 3.* p_ncdm;
+    }
+  }
+
+  /* Lambda */
+  if (pba->has_lambda == _TRUE_) {
+    pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+    rho_tot += pvecback[pba->index_bg_rho_lambda];
+    p_tot -= pvecback[pba->index_bg_rho_lambda];
+  }
+
+  /* fluid with w(a) and constant cs2 */
+  /* or whatever other fluid species you have defined under background_w_fld */
+  if (pba->has_fld == _TRUE_) {
+
+    /* get rho_fld from vector of integrated variables */
+    pvecback[pba->index_bg_rho_fld] = pvecback_B[pba->index_bi_rho_fld];
+
+    /* get w_fld from dedicated function */
+    class_call(background_w_fld(pba,a,&w_fld,&dw_over_da,&integral_fld), pba->error_message, pba->error_message);
+    pvecback[pba->index_bg_w_fld] = w_fld;
+
+    // Obsolete: at the beginning, we had here the analytic integral solution corresponding to the case w=w0+w1(1-a/a0):
+    // pvecback[pba->index_bg_rho_fld] = pba->Omega0_fld * pow(pba->H0,2) / pow(a,3.*(1.+pba->w0_fld+pba->wa_fld)) * exp(3.*pba->wa_fld*(a-1.));
+    // But now everthing is integrated numerically for a given w_fld(a) defined in the function background_w_fld.
+    // printf("pvecback[pba->index_bg_rho_fld] %e\n", pvecback[pba->index_bg_rho_fld]);
+    rho_tot += pvecback[pba->index_bg_rho_fld];
+    p_tot += w_fld * pvecback[pba->index_bg_rho_fld];
+    dp_dloga += (a*dw_over_da-3*(1+w_fld)*w_fld)*pvecback[pba->index_bg_rho_fld];
+
+    // printf("w_fld %e\n", w_fld);
+    if(w_fld>0){
+      rho_m += pvecback[pba->index_bg_rho_fld] - 3.* w_fld * pvecback[pba->index_bg_rho_fld]; //the rest contributes matter
+      rho_r += 3.* w_fld * pvecback[pba->index_bg_rho_fld]; //the rest contributes matter
+      // printf("w_fld %e pvecback[pba->index_bg_rho_fld] - 3.* w_fld * pvecback[pba->index_bg_rho_fld] %e\n", w_fld,pvecback[pba->index_bg_rho_fld] - 3.* w_fld * pvecback[pba->index_bg_rho_fld]);
+    }
+  }
+
+  /* relativistic neutrinos (and all relativistic relics) */
+  if (pba->has_ur == _TRUE_) {
+    pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a,4);
+    rho_tot += pvecback[pba->index_bg_rho_ur];
+    p_tot += (1./3.) * pvecback[pba->index_bg_rho_ur];
+    dp_dloga += -(4./3.) * pvecback[pba->index_bg_rho_ur];
+    rho_r += pvecback[pba->index_bg_rho_ur];
+  }
+
+  /* interacting dark radiation */
+  if (pba->has_idr == _TRUE_) {
+    pvecback[pba->index_bg_rho_idr] = pba->Omega0_idr * pow(pba->H0,2) / pow(a,4);
+    rho_tot += pvecback[pba->index_bg_rho_idr];
+    p_tot += (1./3.) * pvecback[pba->index_bg_rho_idr];
+    rho_r += pvecback[pba->index_bg_rho_idr];
+  }
+
+   //printf("Scalar field? %f \n", pba->has_scf);//print_trigger
     /* Scalar field */
     if (pba->has_scf == _TRUE_ && pba->scf_kg_eq == _TRUE_) {
 
@@ -607,99 +698,7 @@ int background_functions(
 
   }
   //printf("Scalar field? %f \n", pba->has_scf); //print_trigger
-
-
-  /* ncdm */
-  if (pba->has_ncdm == _TRUE_) {
-
-    /* Loop over species: */
-    for (n_ncdm=0; n_ncdm<pba->N_ncdm; n_ncdm++) {
-
-      /* function returning background ncdm[n_ncdm] quantities (only
-         those for which non-NULL pointers are passed) */
-      class_call(background_ncdm_momenta(
-                                         pba->q_ncdm_bg[n_ncdm],
-                                         pba->w_ncdm_bg[n_ncdm],
-                                         pba->q_size_ncdm_bg[n_ncdm],
-                                         pba->M_ncdm[n_ncdm],
-                                         pba->factor_ncdm[n_ncdm],
-                                         1./a-1.,
-                                         NULL,
-                                         &rho_ncdm,
-                                         &p_ncdm,
-                                         NULL,
-                                         &pseudo_p_ncdm),
-                 pba->error_message,
-                 pba->error_message);
-
-      pvecback[pba->index_bg_rho_ncdm1+n_ncdm] = rho_ncdm;
-      rho_tot += rho_ncdm;
-      pvecback[pba->index_bg_p_ncdm1+n_ncdm] = p_ncdm;
-      p_tot += p_ncdm;
-      pvecback[pba->index_bg_pseudo_p_ncdm1+n_ncdm] = pseudo_p_ncdm;
-      /** See e.g. Eq. A6 in 1811.00904. */
-      dp_dloga += (pseudo_p_ncdm - 5*p_ncdm);
-
-      /* (3 p_ncdm1) is the "relativistic" contribution to rho_ncdm1 */
-      rho_r += 3.* p_ncdm;
-
-      /* (rho_ncdm1 - 3 p_ncdm1) is the "non-relativistic" contribution
-         to rho_ncdm1 */
-      rho_m += rho_ncdm - 3.* p_ncdm;
-    }
-  }
-
-  /* Lambda */
-  if (pba->has_lambda == _TRUE_) {
-    pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
-    rho_tot += pvecback[pba->index_bg_rho_lambda];
-    p_tot -= pvecback[pba->index_bg_rho_lambda];
-  }
-
-  /* fluid with w(a) and constant cs2 */
-  /* or whatever other fluid species you have defined under background_w_fld */
-  if (pba->has_fld == _TRUE_) {
-
-    /* get rho_fld from vector of integrated variables */
-    pvecback[pba->index_bg_rho_fld] = pvecback_B[pba->index_bi_rho_fld];
-
-    /* get w_fld from dedicated function */
-    class_call(background_w_fld(pba,a,&w_fld,&dw_over_da,&integral_fld), pba->error_message, pba->error_message);
-    pvecback[pba->index_bg_w_fld] = w_fld;
-
-    // Obsolete: at the beginning, we had here the analytic integral solution corresponding to the case w=w0+w1(1-a/a0):
-    // pvecback[pba->index_bg_rho_fld] = pba->Omega0_fld * pow(pba->H0,2) / pow(a,3.*(1.+pba->w0_fld+pba->wa_fld)) * exp(3.*pba->wa_fld*(a-1.));
-    // But now everthing is integrated numerically for a given w_fld(a) defined in the function background_w_fld.
-    // printf("pvecback[pba->index_bg_rho_fld] %e\n", pvecback[pba->index_bg_rho_fld]);
-    rho_tot += pvecback[pba->index_bg_rho_fld];
-    p_tot += w_fld * pvecback[pba->index_bg_rho_fld];
-    dp_dloga += (a*dw_over_da-3*(1+w_fld)*w_fld)*pvecback[pba->index_bg_rho_fld];
-
-    // printf("w_fld %e\n", w_fld);
-    if(w_fld>0){
-      rho_m += pvecback[pba->index_bg_rho_fld] - 3.* w_fld * pvecback[pba->index_bg_rho_fld]; //the rest contributes matter
-      rho_r += 3.* w_fld * pvecback[pba->index_bg_rho_fld]; //the rest contributes matter
-      // printf("w_fld %e pvecback[pba->index_bg_rho_fld] - 3.* w_fld * pvecback[pba->index_bg_rho_fld] %e\n", w_fld,pvecback[pba->index_bg_rho_fld] - 3.* w_fld * pvecback[pba->index_bg_rho_fld]);
-    }
-  }
-
-  /* relativistic neutrinos (and all relativistic relics) */
-  if (pba->has_ur == _TRUE_) {
-    pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a,4);
-    rho_tot += pvecback[pba->index_bg_rho_ur];
-    p_tot += (1./3.) * pvecback[pba->index_bg_rho_ur];
-    dp_dloga += -(4./3.) * pvecback[pba->index_bg_rho_ur];
-    rho_r += pvecback[pba->index_bg_rho_ur];
-  }
-
-  /* interacting dark radiation */
-  if (pba->has_idr == _TRUE_) {
-    pvecback[pba->index_bg_rho_idr] = pba->Omega0_idr * pow(pba->H0,2) / pow(a,4);
-    rho_tot += pvecback[pba->index_bg_rho_idr];
-    p_tot += (1./3.) * pvecback[pba->index_bg_rho_idr];
-    rho_r += pvecback[pba->index_bg_rho_idr];
-  }
-
+  
   /** - compute expansion rate H from Friedmann equation: this is the
       only place where the Friedmann equation is assumed. Remember
       that densities are all expressed in units of \f$ [3c^2/8\pi G] \f$, ie
