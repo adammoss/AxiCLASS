@@ -619,7 +619,7 @@ int background_functions(
     phi_prime_s = factor*a*pba->m_scf*pba->H0*(3*pow(H,2)*phi - 2*Hprime*phi/a + 4*H*phi_prime/a);
     rho_aux = (0.5*(pow(pba->m_scf*pba->H0,2)*(pow(phi_c,2) + pow(phi_s,2)) +
         (pow(phi_prime_c,2) + pow(phi_prime_s,2))/(2*pow(a,2)) + pba->m_scf*pba->H0*(-phi_c*phi_prime_s + phi_s*phi_prime_c)/a))/3.0;
-    weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - 0.8 * pba->threshold_scf_fluid_m_over_H));
+    weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - MAX(pba->threshold_scf_fluid_m_over_H - 2, 2)));
     if(pba->scf_evolve_as_fluid_PH == _TRUE_){
         pvecback[pba->index_bg_rho_scf] = weight * pvecback[pba->index_bg_rho_scf] + (1 - weight) * rho_aux;
         pvecback[pba->index_bg_p_scf] = pvecback[pba->index_bg_w_scf] * pvecback[pba->index_bg_rho_scf];
@@ -668,7 +668,7 @@ int background_functions(
       phi_prime_s = factor*a*pba->m_scf*pba->H0*(3*pow(H,2)*phi - 2*Hprime*phi/a + 4*H*phi_prime/a);
       rho_aux = (0.5*(pow(pba->m_scf*pba->H0,2)*(pow(phi_c,2) + pow(phi_s,2)) +
           (pow(phi_prime_c,2) + pow(phi_prime_s,2))/(2*pow(a,2)) + pba->m_scf*pba->H0*(-phi_c*phi_prime_s + phi_s*phi_prime_c)/a))/3.0;
-      weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - 0.8 * pba->threshold_scf_fluid_m_over_H));
+      weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - MAX(pba->threshold_scf_fluid_m_over_H - 2, 2)));
       if(pba->scf_evolve_as_fluid_PH == _TRUE_){
         pvecback_B[pba->index_bi_rho_scf] = weight * pvecback_B[pba->index_bi_rho_scf] + (1 - weight) * rho_aux;
       }
