@@ -516,6 +516,7 @@ int background_functions(
 
     pvecback[pba->index_bg_w_scf] =pvecback[pba->index_bg_p_scf]/pvecback[pba->index_bg_rho_scf]; // e.o.s of the scalar field, only used for outputs
 
+    // PH
     H = sqrt((rho_tot + pvecback[pba->index_bg_rho_scf])-pba->K/a/a);
     Hprime = - (3./2.) * ((rho_tot + pvecback[pba->index_bg_rho_scf]) + (p_tot + pvecback[pba->index_bg_p_scf])) * a + pba->K/a;
     factor = 6*pow(H,2)/(9*pow(H,4) - 4*(4*pow(H,2)*pow(pba->m_scf*pba->H0,2) + pow(Hprime,2)/pow(a,2)));
@@ -530,6 +531,7 @@ int background_functions(
     weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - 0.8 * pba->threshold_scf_fluid_m_over_H));
     pvecback[pba->index_bg_rho_scf] = weight * pvecback[pba->index_bg_rho_scf] + (1 - weight) * rho_aux;
     pvecback[pba->index_bg_p_scf] = pvecback[pba->index_bg_w_scf] * pvecback[pba->index_bg_rho_scf];
+    //End PH
 
     pvecback_B[pba->index_bi_rho_scf] = pvecback[pba->index_bg_rho_scf];
 
@@ -554,7 +556,7 @@ int background_functions(
     pvecback[pba->index_bg_dV_scf] = dV_scf(pba,phi); // dV_scf(pba,phi); //potential' as function of phi
     pvecback[pba->index_bg_ddV_scf] = ddV_scf(pba,phi); // ddV_scf(pba,phi); //potential'' as function of phi
 
-    // Again have included contributions from actual field here - is this self consistent?
+    // PH - again have included contributions from actual field here - is this self consistent?
     H = sqrt((rho_tot + (phi_prime*phi_prime/(2*a*a) + V_scf(pba,phi))/3.)-pba->K/a/a);
     Hprime = - (3./2.) * ((rho_tot + (phi_prime*phi_prime/(2*a*a) + V_scf(pba,phi))/3.) + (p_tot + (phi_prime*phi_prime/(2*a*a) - V_scf(pba,phi))/3.)) * a + pba->K/a;
 
@@ -563,6 +565,7 @@ int background_functions(
       //if we just switched from KG to fluid, we need to correctly initialize the density.
       pvecback_B[pba->index_bi_rho_scf] = (phi_prime*phi_prime/(2*a*a) + V_scf(pba,phi))/3.;
 
+      // PH
       factor = 6*pow(H,2)/(9*pow(H,4) - 4*(4*pow(H,2)*pow(pba->m_scf*pba->H0,2) + pow(Hprime,2)/pow(a,2)));
       phi_c = phi;
       phi_prime_c = factor*a*pba->m_scf*pba->H0*(4*H*pba->m_scf*pba->H0*phi +
@@ -574,19 +577,24 @@ int background_functions(
           (pow(phi_prime_c,2) + pow(phi_prime_s,2))/(2*pow(a,2)) + pba->m_scf*pba->H0*(-phi_c*phi_prime_s + phi_s*phi_prime_c)/a))/3.0;
       weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - 0.8 * pba->threshold_scf_fluid_m_over_H));
       pvecback_B[pba->index_bi_rho_scf] = weight * pvecback_B[pba->index_bi_rho_scf] + (1 - weight) * rho_aux;
+      // End PH
 
     }
     /****THE REAL QUANTITIES ARE ASSIGNED HERE****/
     //pvecback[pba->index_bg_rho_scf] = pba->Omega0_scf * pow(pba->H0,2) / pow(a_rel,3);
 
     pvecback[pba->index_bg_rho_scf] = pvecback_B[pba->index_bi_rho_scf];
-    pvecback[pba->index_bg_p_scf] = pba->w_scf*pvecback_B[pba->index_bi_rho_scf];
+    // PH
+    //pvecback[pba->index_bg_p_scf] = pba->w_scf*pvecback_B[pba->index_bi_rho_scf];
+    pvecback[pba->index_bg_p_scf] = 1.5*pow(H/(pba->m_scf*pba->H0),2)*pvecback_B[pba->index_bi_rho_scf];
     if(pba->log10_axion_ac > -30){
       /* approximate fluid equation of state for the axion */
       pvecback[pba->index_bg_w_scf] = (1+pba->w_scf)/(1+pow(pba->a_c/a,3*(1+pba->w_scf)))-1;
     }
     else{
-      pvecback[pba->index_bg_w_scf] = pba->w_scf;
+      // PH
+      //pvecback[pba->index_bg_w_scf] = pba->w_scf;
+      pvecback[pba->index_bg_w_scf] = 1.5*pow(H/(pba->m_scf*pba->H0),2);
     }
 
 
@@ -3327,7 +3335,9 @@ int background_derivs(
     // if(pba->background_verbose > 11) printf("Evolving scalar field using KG equation. phi %e phi prime %e \n", y[pba->index_bi_phi_scf],dy[pba->index_bi_phi_scf]  );
     }
     else if(pba->scf_kg_eq == _FALSE_) {
-    dy[pba->index_bi_rho_scf] = -3.*y[pba->index_bi_rho_scf]*(1+pba->w_scf);
+    // PH
+    //dy[pba->index_bi_rho_scf] = -3.*y[pba->index_bi_rho_scf]*(1+pba->w_scf);
+    dy[pba->index_bi_rho_scf] = -3.*y[pba->index_bi_rho_scf]*(1 + 1.5*pow(H/(pba->m_scf*pba->H0),2));
     dy[pba->index_bi_phi_scf] = 0;
     dy[pba->index_bi_phi_prime_scf] = 0;
     if(pba->background_verbose > 11) printf("Evolving scalar field using fluid equation, rho %e rho prime %e.\n",y[pba->index_bi_rho_scf],dy[pba->index_bi_rho_scf]);
