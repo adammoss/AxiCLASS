@@ -164,6 +164,7 @@ struct background
 
   double Omega0_scf;        /**< \f$ \Omega_{0 scf} \f$: scalar field */
   short scf_evolve_as_fluid; /** set to false to only evolve KG equations, otherwise - switch to fluid when necessary. To be used in perturbation module*/
+  short scf_evolve_as_fluid_PH;
   double threshold_scf_fluid_m_over_H; /** if scf_evolve_as_fluid set to true, the scf will be modeled as a fluid once m/H drops below threshold_scf_fluid_m_over_H */
   double security_small_Omega_scf; /** enforce fluid when Om_scf is below  security_small_Omega_scf even if scf_evolve_as_fluid = False to avoid code crashing; harmless due to the smallness of Om_scf */
   short attractor_ic_scf;   /**< whether the scalar field has attractor initial conditions */

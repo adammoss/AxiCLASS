@@ -620,8 +620,10 @@ int background_functions(
     rho_aux = (0.5*(pow(pba->m_scf*pba->H0,2)*(pow(phi_c,2) + pow(phi_s,2)) +
         (pow(phi_prime_c,2) + pow(phi_prime_s,2))/(2*pow(a,2)) + pba->m_scf*pba->H0*(-phi_c*phi_prime_s + phi_s*phi_prime_c)/a))/3.0;
     weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - 0.8 * pba->threshold_scf_fluid_m_over_H));
-    pvecback[pba->index_bg_rho_scf] = weight * pvecback[pba->index_bg_rho_scf] + (1 - weight) * rho_aux;
-    pvecback[pba->index_bg_p_scf] = pvecback[pba->index_bg_w_scf] * pvecback[pba->index_bg_rho_scf];
+    if(pba->scf_evolve_as_fluid_PH == _TRUE_){
+        pvecback[pba->index_bg_rho_scf] = weight * pvecback[pba->index_bg_rho_scf] + (1 - weight) * rho_aux;
+        pvecback[pba->index_bg_p_scf] = pvecback[pba->index_bg_w_scf] * pvecback[pba->index_bg_rho_scf];
+    }
     //End PH
 
     pvecback_B[pba->index_bi_rho_scf] = pvecback[pba->index_bg_rho_scf];
@@ -667,7 +669,9 @@ int background_functions(
       rho_aux = (0.5*(pow(pba->m_scf*pba->H0,2)*(pow(phi_c,2) + pow(phi_s,2)) +
           (pow(phi_prime_c,2) + pow(phi_prime_s,2))/(2*pow(a,2)) + pba->m_scf*pba->H0*(-phi_c*phi_prime_s + phi_s*phi_prime_c)/a))/3.0;
       weight = 0.5 - 0.5 * tanh(1.5*(pba->m_scf*pba->H0/H - 0.8 * pba->threshold_scf_fluid_m_over_H));
-      pvecback_B[pba->index_bi_rho_scf] = weight * pvecback_B[pba->index_bi_rho_scf] + (1 - weight) * rho_aux;
+      if(pba->scf_evolve_as_fluid_PH == _TRUE_){
+        pvecback_B[pba->index_bi_rho_scf] = weight * pvecback_B[pba->index_bi_rho_scf] + (1 - weight) * rho_aux;
+      }
       // End PH
 
     }
@@ -684,8 +688,12 @@ int background_functions(
     }
     else{
       // PH
-      //pvecback[pba->index_bg_w_scf] = pba->w_scf;
-      pvecback[pba->index_bg_w_scf] = 1.5*pow(H/(pba->m_scf*pba->H0),2);
+      if(pba->scf_evolve_as_fluid_PH == _TRUE_){
+        pvecback[pba->index_bg_w_scf] = 1.5*pow(H/(pba->m_scf*pba->H0),2);
+      }
+      else {
+        pvecback[pba->index_bg_w_scf] = pba->w_scf;
+      }
     }
 
 
@@ -3335,8 +3343,12 @@ int background_derivs(
     }
     else if(pba->scf_kg_eq == _FALSE_) {
     // PH
-    //dy[pba->index_bi_rho_scf] = -3.*y[pba->index_bi_rho_scf]*(1+pba->w_scf);
-    dy[pba->index_bi_rho_scf] = -3.*y[pba->index_bi_rho_scf]*(1 + 1.5*pow(H/(pba->m_scf*pba->H0),2));
+    if(pba->scf_evolve_as_fluid_PH == _TRUE_){
+        dy[pba->index_bi_rho_scf] = -3.*y[pba->index_bi_rho_scf]*(1 + 1.5*pow(H/(pba->m_scf*pba->H0),2));
+    }
+    else {
+        dy[pba->index_bi_rho_scf] = -3.*y[pba->index_bi_rho_scf]*(1+pba->w_scf);
+    }
     dy[pba->index_bi_phi_scf] = 0;
     dy[pba->index_bi_phi_prime_scf] = 0;
     if(pba->background_verbose > 11) printf("Evolving scalar field using fluid equation, rho %e rho prime %e.\n",y[pba->index_bi_rho_scf],dy[pba->index_bi_rho_scf]);
